@@ -1,3 +1,4 @@
+from base_agent import BaseAgent
 class MyAgent(BaseAgent):
     def step(self, rewards, obs):
         if self.color == 'black':
