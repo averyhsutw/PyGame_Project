@@ -2,7 +2,7 @@ import random
 import pygame
 import sys
 from pygame.constants import MOUSEBUTTONDOWN, MOUSEMOTION
-import math
+import copy
 
 class BaseAgent():
     def __init__(self, color = "black", rows_n = 8, cols_n = 8, width = 600, height = 600):
@@ -74,8 +74,8 @@ class BaseAgent():
         move = [[1,1],[1,0],[0,1],[-1,-1],[0,-1],[-1,0],[-1,1],[1,-1]]
         for i in move:
             ate = 0
-            edible = False
-            tasty = False
+            #edible = False
+            #tasty = False
             pos = [t[0]+i[0], t[1]+i[1]]
             if not self.valid_move(pos) or m[pos[0]+pos[1]*8] != -c: #noted color change
                 continue
@@ -115,31 +115,62 @@ class BaseAgent():
                     merged_result[k] += r[k]
         return merged_result
 
-'''
-    def max_reward_move(self,obs):#return the most reward move
-        valid_move = self.find_valid_step(obs)
-        return max(valid_move,key = valid_move.keys)
 
-    def minimax(self,position ,isblack_player,depth = 2):
+    def get_avmove_pos(self,pos_step):
+        return list(pos_step.keys())
+
+    def get_avmove_reward(self,pos_step):
+        return list(pos_step.values())
+
+    def change_obs_value(self,obs_copy,position,changed_value):
+        obs_copy[position] = changed_value
+        return obs_copy
+
+    def unchange_obs_value(self,obs_copy,position,changed_value):
+        obs_copy[position] = changed_value
+        return obs_copy
+
+    def minimax(self,obs,isblack_player,depth = 1):
+        
+        pos_step_with_reward = self.find_valid_step(obs)
+        pos_step = self.get_avmove_pos(pos_step_with_reward)
+        
+        
 
         if depth == 0 :
-            return position
+            rw = self.get_avmove_reward(pos_step_with_reward)
+            return rw
+
         elif  isblack_player:
-            maxeval = -math.inf
+            maxeval = -1000
             
-            for child in position:
-                cur_eval = self.minimax(child,depth - 1 ,False)
-                maxeval = max(maxeval,cur_eval)
+            for child_step in pos_step:
+                obs = self.change_obs_value(obs,child_step,1)
+                cur_eval = self.minimax(obs,False,depth - 1 )
+                print(cur_eval)
+
+
+                if cur_eval is None:
+                    maxeval = max(maxeval,cur_eval)
+                else:
+                    maxeval = max(maxeval,max(cur_eval))
+                obs = self.unchange_obs_value(obs,child_step,-1)
             return maxeval
         else:  
-            mineval = math.inf
+            mineval = 1000
 
-            for child in position:
-                cur_eval = self.minimax(child,depth - 1 ,True)
-                maxeval = max(maxeval,cur_eval)
+            for child_step in pos_step:
+                obs = self.change_obs_value(pos_step_with_reward,child_step,1)
+                cur_eval = self.minimax(obs,True,depth - 1)
+                if cur_eval is None:
+                    maxeval = max(maxeval,cur_eval)
+                else:
+                    maxeval = max(maxeval,max(cur_eval))
+                
+                obs = self.unchange_obs_value(pos_step_with_reward,child_step,-1)
             return mineval
-'''
-#that's the algorithm i'm working with 
+
+ 
 
 
 class HumanAgent(BaseAgent):
@@ -174,9 +205,9 @@ class RandomAgent(BaseAgent):
 
 class MyAgent(BaseAgent):
     def step(self,reward,obs):
-    
+        '''
         pos_step = self.find_valid_step(obs)
-        print(pos_step)
+        
         corner_corner = [(0,0),(0,7),(7,0),(7,7)]
         selected_position = (None, None)
         for i in corner_corner:
@@ -184,11 +215,12 @@ class MyAgent(BaseAgent):
                 selected_position = (90+i[0]*60, 90+i[1]*60)
                 return selected_position, pygame.USEREVENT
 
-
+        
         corner = [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6),
-(7, 1), (7, 2), (7, 3), (7, 4), (7, 5), (7, 6), 
-(1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
-(1, 7), (2, 7), (3, 7), (4, 7), (5, 7), (6, 7)]
+        (7, 1), (7, 2), (7, 3), (7, 4), (7, 5), (7, 6), 
+        (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+        (1, 7), (2, 7), (3, 7), (4, 7), (5, 7), (6, 7)]
+        
         selected_position = (None, None)
         for i in corner:
             if i in pos_step:
@@ -201,8 +233,27 @@ class MyAgent(BaseAgent):
                 if pos_step[i] > rw:
                     selected_position = (90+i[0]*60, 90+i[1]*60)
                     rw = pos_step[i]
-        #print(type(selected_position))   
-        return selected_position, pygame.USEREVENT
+        print(selected_position)
+        '''   
+        
+        cur_pos_with_rw = self.find_valid_step(obs)
+
+        corner_corner = [(0,0),(0,7),(7,0),(7,7)]
+        for i in corner_corner:
+            if i in cur_pos_with_rw:
+                pos = (90+i[0]*60, 90+i[1]*60)
+                return pos, pygame.USEREVENT
+
+
+
+
+        obs_copy = copy.deepcopy(obs)
+        vlaue_of_minimax = max(self.minimax(obs_copy,True,depth=0))
+        
+        pos = tuple(list (cur_pos_with_rw.keys()) [list (cur_pos_with_rw.values()).index (vlaue_of_minimax)])
+        pos = (90+pos[0]*60, 90+pos[1]*60)
+
+        return pos, pygame.USEREVENT
 
     
 
