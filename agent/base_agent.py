@@ -46,24 +46,24 @@ class BaseAgent():
         raise NotImplementError("You didn't finish your step function. Please override step function of BaseAgent!")
      
 
-    def find_valid_step(self,m):
-        
-        if self.color == 'black':
-            c = -1
-        else: c = 1
+    def find_valid_step(self,m,c):#return a dict with all valid_move position and it's reward eg.{(x,y):reward}
 
+        
+        # if self.color == 'black':
+        #     self.c = -1
+        # else: self.c = 1
+        self.c = c
 
         exist_pos = []
         valid_list = []
 
-        
         for i in m:
-            if m[i] == c: #noted color change
+            if m[i] == self.c: #noted color change
                 exist_pos.append((i%8, i//8))
         #print(exist_pos)
         for p in exist_pos:
         #print(p)
-            valid_list.append(self.find_pos(p,m,c))
+            valid_list.append(self.find_pos(p,m,self.c))
         #print(merge_pos_rewards(valid_list))
         return self.merge_pos_rewards(valid_list)
     
@@ -99,13 +99,13 @@ class BaseAgent():
         return pos_reward
 
 
-    def valid_move(self,l):
+    def valid_move(self,l):# part of find_valid_step
 
             if l[0]<0 or l[0]>7 or l[1]<0 or l[1]>7:
                 return False
             else: return True
 
-    def merge_pos_rewards(self,rs):
+    def merge_pos_rewards(self,rs):# part of find_valid_step
         merged_result = {}
         for r in rs:
             for k in r:
@@ -122,53 +122,142 @@ class BaseAgent():
     def get_avmove_reward(self,pos_step):
         return list(pos_step.values())
 
-    def change_obs_value(self,obs_copy,position,changed_value):
-        obs_copy[position] = changed_value
+    def change_obs_value(self,obs_copy,position,value_of_change):
+        position = position[0]+(position[1]-1)*8    #(x,y) to 0-63
+        obs_copy[position] = value_of_change
         return obs_copy
 
-    def unchange_obs_value(self,obs_copy,position,changed_value):
-        obs_copy[position] = changed_value
+    def unchange_obs_value(self,obs_copy,position,value_of_change):
+        position = position[0]+(position[1]-1)*8    #(x,y) to 0-63
+        obs_copy[position] = value_of_change
         return obs_copy
-
-    def minimax(self,obs,isblack_player,depth = 1):
+    
+    def my_max(self,dic):   #return the largest value and it's position of a dict 
         
-        pos_step_with_reward = self.find_valid_step(obs)
+        if len(dic) == 0 :
+            return {(None,None):0}
+        else:
+            seq = []
+            val = max(dic.values())
+            for i in dic:
+                if dic[i] == val:
+                    seq = list(i)
+                    break 
+            seq = [(seq[0],seq[1])]
+            return dict.fromkeys(seq,val)
+
+    def return_func(self,pos,dict2):    
+        
+        for i in dict2:
+            if pos == i :
+                seq = list(i)
+                break 
+        seq = [(seq[0],seq[1])]
+        return dict.fromkeys(seq,dict2[i])
+    
+    def dic_max (self,dict1,dict2): #compare two dict and return the one with larger value
+        
+        if dict1 is None:
+            return dict2
+        elif dict2 is None:
+            return dict1
+        else:
+            new_dict = {**dict1,**dict2}
+            min_pos = min(new_dict,key = new_dict.get)
+            for i in new_dict:
+                if i == min_pos:
+                    new_dict.pop(min_pos)
+                    return new_dict
+
+    def dic_min (self,dict1,dict2): #compare two dict and return the one with smaller value
+        
+        if dict1 is None:
+            return dict2
+        elif dict2 is None:
+            return dict1
+        else:
+            new_dict = {**dict1,**dict2}
+            max_pos = max(new_dict,key = new_dict.get)
+            for i in new_dict:
+                if i == max_pos:
+                    new_dict.pop(max_pos)
+                    return new_dict
+
+    def check(self,target,dict1):   #check if target.key matched dict1.key
+
+        if len(target.keys() & dict1.keys()) != 0:
+            return True 
+        else:
+            return False      
+    
+# main algorithm
+    def minimax(self,obs,isblack_player,depth = 3):
+        
+        pos_step_with_reward = self.find_valid_step(obs,self.c)
+        
         pos_step = self.get_avmove_pos(pos_step_with_reward)
         
-        
-
         if depth == 0 :
-            rw = self.get_avmove_reward(pos_step_with_reward)
-            return rw
+            depth0_out = self.my_max(pos_step_with_reward)
+            
+            return depth0_out
 
         elif  isblack_player:
-            maxeval = -1000
-            
+            maxeval = {(None,None):-1000} 
+            self.c = -1 #make sure the color is right 
+
             for child_step in pos_step:
-                obs = self.change_obs_value(obs,child_step,1)
+
+                obs = self.change_obs_value(obs,child_step,1)#change the obs in order to calculate the situation of the next move 
+
                 cur_eval = self.minimax(obs,False,depth - 1 )
-                print(cur_eval)
+                if cur_eval != {(None,None):0}:
 
+                    maxeval = self.dic_max(maxeval,cur_eval) #maxeval is the most reward of the next move
 
-                if cur_eval is None:
-                    maxeval = max(maxeval,cur_eval)
+                obs = self.unchange_obs_value(obs,child_step,0)#make sure to change it back
+            
+            #return the step that lead to maxeval
+            for child_step in pos_step_with_reward:  
+
+                obs = self.change_obs_value(obs,child_step,1)
+                check_last_step = self.find_valid_step(obs,self.c) 
+                last_step = self.check(maxeval,check_last_step)
+
+                if last_step is not None:
+                    obs = self.unchange_obs_value(obs,child_step,0)
+                    return self.return_func(child_step,pos_step_with_reward)
                 else:
-                    maxeval = max(maxeval,max(cur_eval))
-                obs = self.unchange_obs_value(obs,child_step,-1)
-            return maxeval
+                    pass
+                obs = self.unchange_obs_value(obs,child_step,0)
+            
+        # same as above , but it determine white's move 
+        # detalis plz google minimax , I can't explain ┐(´д`)┌
         else:  
-            mineval = 1000
-
+            
+            mineval = {(None,None):1000}
+            self.c = 1
             for child_step in pos_step:
-                obs = self.change_obs_value(pos_step_with_reward,child_step,1)
-                cur_eval = self.minimax(obs,True,depth - 1)
-                if cur_eval is None:
-                    maxeval = max(maxeval,cur_eval)
+
+                obs = self.change_obs_value(obs,child_step,-1)
+                min_cur_eval = self.minimax(obs,True,depth - 1)
+                if min_cur_eval != {(None,None):0}:
+                    mineval = self.dic_min(mineval,min_cur_eval)
+                obs = self.unchange_obs_value(obs,child_step,0)
+
+            for child_step in pos_step_with_reward:
+                self.c = 1
+
+                obs = self.change_obs_value(obs,child_step,-1)
+                check_last_step_min = self.find_valid_step(obs,self.c) 
+                last_step_min = self.check(mineval,check_last_step_min)
+
+                if last_step_min is not None:
+                    obs = self.unchange_obs_value(obs,child_step,0)
+                    return self.return_func(child_step,pos_step_with_reward)
                 else:
-                    maxeval = max(maxeval,max(cur_eval))
-                
-                obs = self.unchange_obs_value(pos_step_with_reward,child_step,-1)
-            return mineval
+                    obs = self.unchange_obs_value(obs,child_step,0)
+
 
  
 
@@ -189,68 +278,34 @@ class HumanAgent(BaseAgent):
 
 class RandomAgent(BaseAgent):
     def step(self, reward, obs):    
-        pos_step = self.find_valid_step(obs)
+        pos_step = self.find_valid_step(obs,1)
         selected_position = random.choice(list(pos_step.keys()))
         x,y = selected_position
         pos = (90+x*60, 90+y*60)
         return pos,pygame.USEREVENT    
-            
-          
-        
-
-        
         #return (self.col_offset + random.randint(0, self.cols_n-1) * self.block_len, self.row_offset + random.randint(0, self.rows_n-1) * self.block_len), pygame.USEREVENT
 
-        # return (-1,-1),pygame.USEREVENT
 
 class MyAgent(BaseAgent):
     def step(self,reward,obs):
-        '''
-        pos_step = self.find_valid_step(obs)
+        self.c = -1
         
-        corner_corner = [(0,0),(0,7),(7,0),(7,7)]
-        selected_position = (None, None)
-        for i in corner_corner:
-            if i in pos_step:
-                selected_position = (90+i[0]*60, 90+i[1]*60)
-                return selected_position, pygame.USEREVENT
-
+        cur_pos_with_rw = self.find_valid_step(obs,-1)
         
-        corner = [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6),
-        (7, 1), (7, 2), (7, 3), (7, 4), (7, 5), (7, 6), 
-        (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
-        (1, 7), (2, 7), (3, 7), (4, 7), (5, 7), (6, 7)]
-        
-        selected_position = (None, None)
-        for i in corner:
-            if i in pos_step:
-                selected_position = (90+i[0]*60, 90+i[1]*60)
-                return selected_position, pygame.USEREVENT
-
-        rw = 0
-        if selected_position == (None, None):
-            for i in pos_step:
-                if pos_step[i] > rw:
-                    selected_position = (90+i[0]*60, 90+i[1]*60)
-                    rw = pos_step[i]
-        print(selected_position)
-        '''   
-        
-        cur_pos_with_rw = self.find_valid_step(obs)
-
+        #corner firsttt
         corner_corner = [(0,0),(0,7),(7,0),(7,7)]
         for i in corner_corner:
             if i in cur_pos_with_rw:
                 pos = (90+i[0]*60, 90+i[1]*60)
                 return pos, pygame.USEREVENT
 
-
-
-
         obs_copy = copy.deepcopy(obs)
-        vlaue_of_minimax = max(self.minimax(obs_copy,True,depth=0))
-        
-        pos = tuple(list (cur_pos_with_rw.keys()) [list (cur_pos_with_rw.values()).index (vlaue_of_minimax)])
+        #main algorithm (minimax)
+        #return a dict with position and it's reward eg.{(x,y):reward}
+        vlaue_of_minimax  = self.minimax(obs_copy,True,depth=3)
+
+        for a in vlaue_of_minimax:
+            pos = a
         pos = (90+pos[0]*60, 90+pos[1]*60)
 
         return pos, pygame.USEREVENT
@@ -261,3 +316,4 @@ class MyAgent(BaseAgent):
 # if __name__ == "__main__":
 #     agent = RandomAgent()
 #     print(agent.step(None, None))
+        

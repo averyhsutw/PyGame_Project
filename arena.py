@@ -69,7 +69,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--agent1', default="base_agent.MyAgent")
     parser.add_argument('--agent2', default="base_agent.RandomAgent")
-    parser.add_argument('--width', default=600, type=int)
+    parser.add_argument('--width', default=600, type=int)   
     parser.add_argument('--height', default=600, type=int)
     parser.add_argument('--rounds', default=10, type=int)
     parser.add_argument('--time_limit', default=30000, type=int)
