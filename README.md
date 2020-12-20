@@ -1,153 +1,53 @@
-# Reversi Game Project
-### Prerequsite
-```
-$ pip install pygame
-$ pip install tqdm
-$ pip install numpy
-```
-### Repo structure
-```
-.
-├── README.md
-├── agent
-│   └── base_agent.py
-├── arena.py
-├── board.py
-├── env.py
-├── font
-│   ├── LICENSE.txt
-│   └── OpenSans-Regular.ttf
-├── pygamewrapper.py
-├── reversi.py
-├── reversi_board.py
-└── utils.py
-```
+# Reversi Game Project Report
 
+### Team members
+- Team leader:
+    - name: Ya-hsuan HSU
+    - student_id: b08902145
+    - github: [averyhsutw](https://github.com/averyhsutw)
+ - member:
+    - name: Pang-chi LO
+    - student_id: b08902146
+    - github: [Bungeeee](https://github.com/Bungeeee)
+ - member:
+    - name: Chi-hei lei 
+    - student_id: b09902089
+    - github: [FrankyLei](https://github.com/FrankyLei)
+    
+### Report   (๑•̀ω•́)ノ(๑•̀ω•́)ノ(๑•̀ω•́)ノ
 
-### Usage
-```
-$ git clone https://github.com/cwlin1998/reversi-pygame.git
-$ cd reversi-pygame
-$ python3 arena.py --time_limit=600000
-```
+Each group memebers has their own agent. The following are the strategies and the algorithms we used.
 
-Now you can play with an AI
-### Github tutorial 
-[Our slide](https://docs.google.com/presentation/d/1X0YmTyj4BNnG7E8saxtG-jH9XLWm8OiFG3L21HhgRwc/edit#slide=id.gacd295469b_2_15)
+- Avery:ʕ•ᴥ•ʔ
+    - It's an improved version of Bungee's agent 3. Therefore, the way how to calculate the score of each position is described in the **Sean (Bungee)** part.
+    - Strategies added:
+        - strategy 1: avoid positions (1,0), (6,0), (0,1), (7,1), (0,6), (7,6), (1,7), (6,7).
+        - strategy 2: get to positions (2,0), (5,0), (0,2), (7,2), (0,5), (7,5), (2,7), (5,7).
+        - strategy 3: go to the position having the highest score.
+    - When to change the strategy?
+        - At first, I try to get to the corner. Hence, I use strategy 1 and 2. 
+        - Then, change to strategy 3.
+        - When is the timepoint to change strategies? I use Bungee_ver3 Agent and Franky's Agent to make these two agent play with my agent. Therefore I know when is the time to change strategies if my agent can beat these two agent. 
 
-### Python tutorial
+- Franky:( Φ ω Φ )
+    - ~~Basically stole Sean (Bungee)'s get_available_move~~ ⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ and make an agent based on minimax algorithm. 
+    - Minimax algorithm calculate all the possible move'rewards in the following turn(the "depth number" in the program), and return the best move. **(minimize white's rewards, maximize black' rewards)** (ﾉ>ω<)ﾉ
+    - Also added feature like corners first in my agent (,,・ω・,,)
 
-[Our slide](https://docs.google.com/presentation/d/1pyyqS0QBvdS6jl4sLFFINce6fYdUXPpX9f47-3n6AME/edit?usp=sharing)
+- Sean (Bungee):ฅ●ω●ฅ
+    - Calculate the reward of each move and then compute the max possible loss of it. Sum up the reward and loss and store it in a dictionary as { position : sum(reward:+1:, loss:-1:) }
+    - 4 corners are prior to others in selection while they're avalible 
+    - Otherwise, use the dictionary of positions which is mentioned above to select the best position for the next move via Greedy Algorithm. :yum: 
 
-### Markdown tutorial
+At the end, we choose the agent of Avery's version just because it can beat the other two. We can not sure which agent of us can win more if we play against with other group's agents. ~~We gamble anyway.~~(⁎⁍̴̛ᴗ⁍̴̛⁎)
 
-[Our slide](https://docs.google.com/presentation/d/1BrGTMmXFdGQpRkhMQs3FPhjOsyPv-EwPOy3bguRlIbI/edit?usp=sharing)
-
-
-
-###  Preparation for Team Project
-1. [Duplicate this repo](https://docs.github.com/en/free-pro-team@latest/github/creating-cloning-and-archiving-repositories/duplicating-a-repository) and make it private.
-> Thanks to [GWFrank](https://github.com/GWFrank) providing the solution.
-2. Add your teamates and TA to your repo.
-3. Write your member name in your README.
-For example:
-    ### Team members
-    - Team leader:
-        - name: Cheng-Wei Lin
-        - student_id: r09922078
-        - github: [cwlin1998](https://github.com/cwlin1998)
-    - member:
-        - name: Chi-Ming Chung
-        - student_id: r09944021
-        - github: [MarvinChung](https://github.com/MarvinChung)
-
-## Todo
-- Write an agent for your game:
-    - You need to inherit BaseAgent and write your own agent
-    ```
-    class MyAgent(BaseAgent):
-        def step(self, obs, reward):
-            # override this function
-            # strongly suggest: write a function to get valid actions
-    ```
-    - Put your agent in agent_folder and name it using your team leader's github id with a suffix.
-    For example:
+### Structure in agent directory
     ```
     ├── agent
-    │   ├── cwlin1998.py
-    │   ├── cwlin1998_func/    # put your other files under this folder
+    │   ├── averyhsutw.py  #The agent we'd like to submit.
+    │   ├── averyhsutw/ 
+    │   │   └── teammates_agent/
+    │   │       ├── Bungeeee_Agent_ver3.py
+    │   │       └── franky_minimax_ver.py
     │   └── base_agent.py 
     ```
-    
-    - **Your agent should not exceed the time limit (30s) per game, otherwise you lose the game.**
-- Test your agent
-    ```
-    $ python3 arena.py --agent1 cwlin1998.MyAgent --agent2 base_agent.RandomAgent
-    ```
-- Write your report
-    
-    - Put your report in README.md. Learn how to write markdown
-    
-- Work as a team and learn how to use github and read code :100: 
-
-## Limitation
-- 4GB file
-- 4GB memory usage 
-- 4 threads
-- If you want to use third-party packages other than numpy, pygame, pytorch and tensorflow, report an issue. (We suggest using rule based algorithm)
-
-
-## Grading policy
-### Learn Github (60%)
-- (**10 %**) Duplicate our repo
-    - When your duplicate this repo and add TAs into your repo you get 8 points.
-    - You get 2 points when you add your teammates and show their name in README.md.
-- (**10 %**) Create your own branch and clean our branches
-    - Delete all of our branches except main.
-    - Create your own branches.
-- (**10 %**) Protect main branch 
-    - Merge only when all teammember(not including TAs) approves.
-    - Main branch should be clean. No redundacy code and bug.
-    - You will need to use git branch and learn how to use git rebase.
-- (**10 %**) All members should collaborate together and use pull request.
-    
-    - Disccus to each other.
-- (**10 %**) Use git tag to do version control
-    - For example: 
-        - tag name: v1.0, v1.1 ....
-    - TA will grade your code using the latest tag
-- (**10 %**) Write the report in your README.md
-    - Describe how you made your agent. Example: What algorithm you use?
-    - You can write your report on top of this README.md after forking
-        - For example:
-            # Reversi Game Project
-            ### Team members
-            - Team leader:
-                - name: Cheng-Wei Lin
-                - student_id: r09922078
-                - github: [cwlin1998](https://github.com/cwlin1998)
-            - member:
-                - name: Chi-Ming Chung
-                - student_id: r09944021
-                - github: [MarvinChung](https://github.com/MarvinChung)
-            ### Report
-            I don't have time therefore I submit random agent.
-
-### Python coding (40 %) 
-- (**10 %**) Your agent can be run
-    - You can even copy paste our RandomAgent and change the name to get 10 points. 
-- (**10 %**) Pass the baseline
-    - We will test your agent agaist RandomAgent. You need to have an at least 80% win rate to get 10 points.
-    - **Caution: Please do not exceed time limit(30s per game)**
-- (**20 %**) Leaderboard
-    - We will test all your agents and you will fight with each others.
-    - Your team will get 1 point if you beat another team. (You can get 20 points at most.) Try to beat  your classmates! :punch:
-    - Don't give others your code! :no_good:
-    - **The leaderboard will be announced.** 
-    You have one month for this HW. Good luck!
-
-## QA
-
-1. Put your questions in issues inside this repo.
-2. **Bonus:**
-    If you find bugs :beetle: in TAs' repo. you can report it with issues and fix it with pull request then you may get bonus points. :thumbsup:
