@@ -1,4 +1,4 @@
-from agent.base_agent import RandomAgent, HumanAgent, BaseAgent
+from agent.base_agent import RandomAgent, HumanAgent, BaseAgent, MyAgent
 from reversi import Reversi
 from env import Environment
 from reversi_board import ReversiBoard
@@ -8,6 +8,7 @@ import importlib
 import argparse
 from tqdm.auto import tqdm
 import copy
+#from agent.MyAgent import MyAgent
 
 def run_agent(agent: BaseAgent, reward: dict, obs: dict):
     action, event_type = agent.step(copy.deepcopy(reward), copy.deepcopy(obs))
@@ -66,9 +67,9 @@ def main(play_ground, agent1, agent2, rounds):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--agent1', default="base_agent.HumanAgent")
+    parser.add_argument('--agent1', default="base_agent.MyAgent")
     parser.add_argument('--agent2', default="base_agent.RandomAgent")
-    parser.add_argument('--width', default=600, type=int)
+    parser.add_argument('--width', default=600, type=int)   
     parser.add_argument('--height', default=600, type=int)
     parser.add_argument('--rounds', default=10, type=int)
     parser.add_argument('--time_limit', default=30000, type=int)
@@ -94,4 +95,6 @@ if __name__ == "__main__":
     agent1 = getattr(agent1_module, args.agent1.split('.')[1])(color = "black", rows_n = len(rev_board.rows), cols_n = len(rev_board.cols), width = args.width, height = args.height)
     agent2 = getattr(agent2_module, args.agent2.split('.')[1])(color = "white", rows_n = len(rev_board.rows), cols_n = len(rev_board.cols), width = args.width, height = args.height)
     main(play_ground, agent1, agent2, args.rounds)
+
+
 
