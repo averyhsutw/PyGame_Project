@@ -1,4 +1,5 @@
-from base_agent import BaseAgent
+from agent.base_agent import BaseAgent
+import pygame
 class MyAgent(BaseAgent):
     def step(self, rewards, obs):
         if self.color == 'black':

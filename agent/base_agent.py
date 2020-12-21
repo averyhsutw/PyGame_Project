@@ -8,9 +8,9 @@ class BaseAgent():
         self.color = color
         self.rows_n = rows_n
         self.cols_n = cols_n
-        self.block_len = 0.8 * min(height, width)/cols_n
-        self.col_offset = (width - height)/2 + 0.1 * min(height, width) + 0.5 * self.block_len
-        self.row_offset = 0.1 * min(height, width) + 0.5 * self.block_len
+        self.block_len = 0.8 * min(height, width)/cols_n  # 60
+        self.col_offset = (width - height)/2 + 0.1 * min(height, width) + 0.5 * self.block_len #90
+        self.row_offset = 0.1 * min(height, width) + 0.5 * self.block_len #90
         
 
     def step(self, reward, obs):
